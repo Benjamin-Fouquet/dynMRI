@@ -3,8 +3,8 @@
 """
 Created on Tue May  4 11:08:41 2021
 
-This script opens a STL and a corresponding nifti and plug the texture of the nifti on the STL, and saves it to a ply format viewable in paraview.
-Texture values are converted on a 0-255 scale respecting the original spread and ratio of values
+This script opens a STL and a corresponding nifti and plug the texture of the nifti on the mesh, and saves it to a ply format viewable in paraview.
+Texture values are scaled using scikit scaler
 
 TODO:
 -find a PLY->gifti converter
@@ -72,26 +72,21 @@ if smoothing_type == 'NearestNeighbor':
 
 def uglyRGB (texture):
     #include converstion to 0-255 scale
-    #output = np.zeros (len(texture))
-    min_max_scaler = preprocessing.MinMaxScaler()
-    output = min_max_scaler.fit_transform(texture.reshape(-1, 1)).reshape(len(texture)) * 255
-    '''
+    output = np.zeros (len(texture))
+
     maxtex = max(texture)
     print(maxtex)
     mintex = min(texture)
     print(mintex)
-    for i in range(len(texture)):
-        if i == 0:
-            output[i] = mintex
-        else:
-            output[i] = ((texture[i] - mintex) * 255) / (maxtex-mintex) + mintex
-    '''
+
+    min_max_scaler = preprocessing.MinMaxScaler()
+    output = min_max_scaler.fit_transform(texture.reshape(-1, 1)).reshape(texture.shape) * 100
     return output
  
 
-#texture = uglyRGB(texture)
+texture = uglyRGB(texture)
+print(np.max(texture))
 #modify in place texture of a mesh
-mesh.visual.vertex_colors
 for i in range(len(mesh.visual.vertex_colors)):
     mesh.visual.vertex_colors[i] = [texture[i], texture[i], texture[i], texture[i]] #red, green, blue, alpha (?)
 
@@ -177,3 +172,4 @@ def myshow(img, title=None, margin=0.05):
     plt.show()
 
 '''
+
